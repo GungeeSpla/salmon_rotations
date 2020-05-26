@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>サーモンランのシフト履歴を一覧表示するページ</title>
+<meta name="description" content="スプランプさんのサーモンランAPIを使用してシフト履歴を一覧表示するページです。" />
+<script>
+'use strict';
+async function init() {
+  const rotations = await getRotationsJSON();
+  rotations.reverse();
+  const len = rotations.length;
+  let html = '<table><tr><th>num</th><th>start</th><th>end</th><th>stage</th><th>w1</th><th>w2</th><th>w3</th><th>w4</th></tr>';
+  for (let i = 0; i < len; i += 1) {
+    const rot = rotations[i];
+    let { num, start, end, stage, w1, w2, w3, w4 } = rot;
+    stage = stage ? stage : '';
+    w1 = w1 ? w1 : '';
+    w2 = w2 ? w2 : '';
+    w3 = w3 ? w3 : '';
+    w4 = w4 ? w4 : '';
+    html += `<tr><td>${num}</td><td>${start}</td><td>${end}</td><td>${stage}</td><td>${w1}</td><td>${w2}</td><td>${w3}</td><td>${w4}</td></tr>`;
+  }
+  html += '</table>';
+  document.getElementById('content').innerHTML = html;
+}
+function getRotationsJSON() {
+  return new Promise((resolve) => {
+    // XMLHttpRequestを作成
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://splamp.info/salmon/api/all', true);
+    xhr.responseType = 'text';
+    xhr.onerror = () => {
+      resolve(null);
+    };
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === xhr.DONE) {
+        if (xhr.status === 200 || xhr.status === 304) {
+          const json = (typeof xhr.responseText === 'string')
+            ? JSON.parse(xhr.responseText)
+            : xhr.responseText;
+          resolve(json);
+        } else {
+          // 通信に失敗したならば
+          resolve(null);
+        }
+      }
+    };
+    // 通信開始
+    xhr.send(null);
+  });
+}
+</script>
+</head>
+<body onload="init();">
+参考『<a href="https://splamp.info/salmon/api/">サーモンランAPI</a>』<br><br>
+<div id="content"></div>
+</body>
+</html>
